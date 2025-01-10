@@ -17,6 +17,7 @@ dataset
 pre-trained
 test/*
 *.pth
+*.pt
 output
 output_global
 others
