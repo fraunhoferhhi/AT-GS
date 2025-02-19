@@ -67,7 +67,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
                 else: batch_size = 1 #2
                 num_batches = (len(group) + batch_size - 1) // batch_size  # Ensure correct batch calculation
 
-                for i in tqdm(range(num_batches), desc=f"Computing optical flows for shape {image_shape}"):
+                for i in tqdm(range(num_batches), desc=f"Computing optical flows for shape {image_shape}", mininterval=5.0):
                     start_idx = i * batch_size
                     end_idx = min((i + 1) * batch_size, len(group))  # Ensure the last batch is correctly indexed
                     batch_views = group[start_idx:end_idx]
@@ -78,12 +78,12 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
                     if args.save_snapshot:
                         warped_normals_batch, flow_bwd_batch = raft_model.raft_warp(image1_batch, rgb_batch, normals_batch, args.save_snapshot)
                         for view, warped_normals, flow_bwd in zip(batch_views, warped_normals_batch, flow_bwd_batch):
-                            args.warped_normals[f'{view.image_name}'] = warped_normals  # 3HW
+                            args.warped_normals[f'{view.image_name}'] = warped_normals  # 4HW
                             args.flow_bwd[f'{view.image_name}'] = flow_bwd  # 2HW
                     else:
                         warped_normals_batch = raft_model.raft_warp(image1_batch, rgb_batch, normals_batch, args.save_snapshot)
                         for view, warped_normals in zip(batch_views, warped_normals_batch):
-                            args.warped_normals[f'{view.image_name}'] = warped_normals  # 3HW
+                            args.warped_normals[f'{view.image_name}'] = warped_normals  # 4HW
 
     opt.densification_interval = max(opt.densification_interval, len(scene.getTrainCameras()))
     background = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], dtype=torch.float32, device="cuda")
@@ -93,7 +93,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
 
     viewpoint_stack = None
     ema_loss_for_log = 0.0
-    progress_bar = tqdm(range(first_iter, opt.iter_s1 + opt.iter_s2), desc="Training progress")
+    progress_bar = tqdm(range(first_iter, opt.iter_s1 + opt.iter_s2), desc="Training progress", mininterval=5.0)
     first_iter += 1
     iter_start_time=time.time()
     
@@ -260,7 +260,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
             views = scene.getTrainCameras(1)
             background4output = torch.tensor([1,1,1], dtype=torch.float32, device="cuda")
             # loop through all training cams
-            for idx, view in enumerate(tqdm(views, desc="Rendering normals")):
+            for idx, view in enumerate(tqdm(views, desc="Rendering normals", mininterval=5.0)):
                 render_pkg = render(view, gaussians, pipe, background4output)
                 normal = render_pkg["normal"]
                 opac = render_pkg["opac"]
@@ -278,7 +278,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
                 
                     if len(args.warped_normals) > 0:
                         # save warped normals
-                        warped_normals = args.warped_normals[f'{view.image_name}'] # 3HW
+                        warped_normals = args.warped_normals[f'{view.image_name}'] # 4HW
                         mask_warp = warped_normals[3:]
                         normal_warped = torch.nn.functional.normalize(warped_normals[0:3], dim=0) * mask_warp * mask  # 3HW
                         normal_wrt = normal2rgb(normal_warped, mask_warp * mask, background4output)  # normal does not change, no need to clone
@@ -353,7 +353,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
 
             resampled = []
             # loop through all cams
-            for idx, view in enumerate(tqdm(scene.getTrainCameras(1), desc="Rendering progress")):
+            for idx, view in enumerate(tqdm(scene.getTrainCameras(1), desc="Rendering progress", mininterval=5.0)):
                 render_pkg = render(view, gaussians, pipe, background)
                 image, normal, depth, opac, viewspace_point_tensor, visibility_filter, radii = \
                     render_pkg["render"], render_pkg["normal"], render_pkg["depth"], render_pkg["opac"], \

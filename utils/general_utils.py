@@ -292,8 +292,6 @@ def poisson_mesh(mesh_path, vtx, normal, color, depth, use_pymeshlab, hhi=False,
     # poisson recon
     if use_pymeshlab or hhi:                
         from scipy.spatial import ConvexHull, Delaunay
-        import alphashape
-        from shapely.geometry import Point, Polygon
         # Step 1: Filter out points where y < 0
         filtered_indices = vtx_np[:, 1] >= 0
         filtered_points = vtx_np[filtered_indices]

@@ -26,7 +26,7 @@ def render_set(model_path, use_mask, name, iteration, views, gaussians, pipeline
     resampled = []
     psnr_all = []
     # loop through all cams
-    for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
+    for idx, view in enumerate(tqdm(views, desc="Rendering progress", mininterval=5.0)):
         render_pkg = render(view, gaussians, pipeline, background)
 
         image, normal, depth, opac, viewspace_point_tensor, visibility_filter, radii = \

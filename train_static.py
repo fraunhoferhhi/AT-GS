@@ -45,7 +45,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
     viewpoint_stack = None
     ema_loss_for_log = 0.0
-    progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
+    progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress", mininterval=5.0)
     first_iter += 1
     
     for iteration in range(first_iter, opt.iterations + 2):
@@ -179,7 +179,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
             resampled = []
             # loop through all cams
-            for idx, view in enumerate(tqdm(scene.getTrainCameras(1), desc="Rendering progress")):
+            for idx, view in enumerate(tqdm(scene.getTrainCameras(1), desc="Rendering progress", mininterval=5.0)):
                 render_pkg = render(view, gaussians, pipe, background)
                 image, normal, depth, opac, viewspace_point_tensor, visibility_filter, radii = \
                     render_pkg["render"], render_pkg["normal"], render_pkg["depth"], render_pkg["opac"], \

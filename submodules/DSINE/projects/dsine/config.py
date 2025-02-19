@@ -38,6 +38,7 @@ def get_args(test=False):
     #↑↑↑↑
 
     parser.add_argument('--img_dir', type=str, help="folder of rgb images")
+    parser.add_argument('--resize_img', type=float, default=1)
 
     # read arguments from txt file
     assert '.txt' in sys.argv[1]

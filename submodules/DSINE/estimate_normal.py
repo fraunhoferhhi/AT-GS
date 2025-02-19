@@ -49,12 +49,16 @@ os.makedirs(output_visualization_dir, exist_ok=True)
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
 with torch.no_grad():
-    for img_path in tqdm(img_paths, desc=f"Estimating normals"):
+    for img_path in tqdm(img_paths, desc=f"Estimating normals", mininterval=5.0):
         print(img_path)
         ext = os.path.splitext(img_path)[1]
         filename = os.path.splitext(os.path.basename(img_path))[0]
 
         img = Image.open(img_path).convert('RGB')
+
+        if args.resize_img != 1:
+            img = img.resize((int(img.width*args.resize_img), int(img.height*args.resize_img)), resample=Image.Resampling.LANCZOS)
+
         img = np.array(img).astype(np.float32) / 255.0
         img = torch.from_numpy(img).permute(2, 0, 1).unsqueeze(0).to(device)
 

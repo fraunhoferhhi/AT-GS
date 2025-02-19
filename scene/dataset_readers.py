@@ -21,6 +21,7 @@ from plyfile import PlyData, PlyElement
 import imageio
 import skimage
 from scene.gaussian_model import BasicPointCloud
+from tqdm import tqdm
 
 class CameraInfo(NamedTuple):
     uid: int
@@ -69,11 +70,11 @@ def getNerfppNorm(cam_info):
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
-    for idx, key in enumerate(cam_extrinsics):
-        sys.stdout.write('\r')
-        # the exact output you're looking for:
-        sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
-        sys.stdout.flush()
+    # for idx, key in enumerate(cam_extrinsics):
+        # sys.stdout.write('\r')
+        # sys.stdout.write("Reading camera {}/{}".format(idx+1, len(cam_extrinsics)))
+        # sys.stdout.flush()
+    for idx, key in enumerate(tqdm(cam_extrinsics, desc="Reading cameras", mininterval=5.0)):        
         extr = cam_extrinsics[key]
         intr = cam_intrinsics[extr.camera_id]
         height = intr.height
@@ -116,7 +117,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, prcppoint=prcppoint, image=image,
                               image_path=image_path, image_name=image_name, width=width, height=height, mask=mask, mono=mono)
         cam_infos.append(cam_info)
-    sys.stdout.write('\n')
+    # sys.stdout.write('\n')
     return cam_infos
 
 def fetchPly(path):
