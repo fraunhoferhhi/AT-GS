@@ -205,7 +205,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             os.makedirs(mesh_dir, exist_ok=True)
             mesh_path = os.path.join(mesh_dir, f"Frame_{args.frame_start:06d}.ply")
             use_pymeshlab = True
-            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, use_pymeshlab, args.hhi, args.n_faces)
+            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
 
 
 def prepare_output_and_logger(args):    
@@ -287,6 +287,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_mesh", type=str, default="False")
     parser.add_argument("--hhi", type=str, default="True")
     parser.add_argument("--n_faces", type=int, default=None)
+    parser.add_argument("--add_floor_pc", type=str, default="True")
     args = parser.parse_args(sys.argv[1:])
     if args.config_path is not None:
         with open(args.config_path, 'r') as f:
@@ -296,6 +297,7 @@ if __name__ == "__main__":
     args.mono_normal = str2bool(args.mono_normal)
     args.output_mesh = str2bool(args.output_mesh)
     args.hhi = str2bool(args.hhi)
+    args.add_floor_pc = str2bool(args.add_floor_pc)
 
     args.save_iterations.append(args.iterations)
     args.source_path = os.path.join(args.source_path, f'frame_{args.frame_start}')

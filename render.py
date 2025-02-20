@@ -90,8 +90,7 @@ def render_set(model_path, use_mask, name, iteration, views, gaussians, pipeline
         mesh_dir = os.path.join(model_path, "..", "meshes")
         os.makedirs(mesh_dir, exist_ok=True)
         mesh_path = os.path.join(mesh_dir, f"Frame_{frame_id:06d}.ply")
-        poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, args.use_pymeshlab, args.hhi, args.n_faces)
-
+        poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, args.use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
 
 def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParams, skip_train : bool, skip_test : bool, write_image: bool, poisson_depth: int, frame_id):
     with torch.no_grad():
@@ -126,6 +125,7 @@ if __name__ == "__main__":
     parser.add_argument("--out_img4eval", action="store_true")
     parser.add_argument("--n_faces", type=int, default=None)
     parser.add_argument("--hhi", type=str, default="False")
+    parser.add_argument("--add_floor_pc", type=str, default="True")
 
     # args = get_combined_args(parser)
     args = parser.parse_args(sys.argv[1:])
@@ -135,6 +135,7 @@ if __name__ == "__main__":
         for key, value in config.items():
             setattr(args, key, value)
     args.hhi = str2bool(args.hhi)
+    args.add_floor_pc = str2bool(args.add_floor_pc)
     
     # Initialize system state (RNG)
     safe_state(args.quiet)

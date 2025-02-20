@@ -281,7 +281,7 @@ def remove_vertex_colors(obj_path):
                     line = ' '.join(parts[:4]) + '\n'
             outfile.write(line)
 
-def poisson_mesh(mesh_path, vtx, normal, color, depth, use_pymeshlab, hhi=False, n_faces=None, smooth_iter=5):
+def poisson_mesh(mesh_path, vtx, normal, color, depth, use_pymeshlab, hhi=False, n_faces=None, smooth_iter=5, add_floor_pc=False):
     print('Poisson meshing')
     if hhi: mesh_path = mesh_path.replace('.ply', '.obj')
 
@@ -290,67 +290,70 @@ def poisson_mesh(mesh_path, vtx, normal, color, depth, use_pymeshlab, hhi=False,
     normal_np = normal.cpu().numpy()
 
     # poisson recon
-    if use_pymeshlab or hhi:                
-        from scipy.spatial import ConvexHull, Delaunay
-        # Step 1: Filter out points where y < 0
-        filtered_indices = vtx_np[:, 1] >= 0
-        filtered_points = vtx_np[filtered_indices]
-        filtered_normals = normal_np[filtered_indices]
+    if use_pymeshlab or hhi:
+        if hhi: 
+            # # Step 1: Filter out points where y < floor_cut
+            # filtered_indices = vtx_np[:, 1] >= floor_cut
+            # vtx_np = vtx_np[filtered_indices]
+            # normal_np = normal_np[filtered_indices]
+            
+            if add_floor_pc:
+                # Step 2: Project the bottom points onto the y = floor_cut/min_y plane
+                min_y = vtx_np[:, 1].min()
+                bottom_points = vtx_np[vtx_np[:, 1] < min_y+5] # 5mm above the floor
+                projected_points = bottom_points[:, [0, 2]]  # Only x and z coordinates
 
-        # Step 2: Project the bottom points onto the y = 0 plane
-        bottom_points = filtered_points[filtered_points[:, 1] < 5] # 5mm above the floor
-        projected_points = bottom_points[:, [0, 2]]  # Only x and z coordinates
+                # Step 3A: Find the 2D convex hull
+                from scipy.spatial import ConvexHull, Delaunay
+                hull = ConvexHull(projected_points)
+                hull_vertices = projected_points[hull.vertices]
 
-        # Step 3A: Find the 2D convex hull
-        hull = ConvexHull(projected_points)
-        hull_vertices = projected_points[hull.vertices]
+                # Step 4: Generate a dense grid of points inside the hull
+                # Define a grid bounding box
+                x_min, x_max = projected_points[:, 0].min(), projected_points[:, 0].max()
+                z_min, z_max = projected_points[:, 1].min(), projected_points[:, 1].max()
+                # Create a grid of points
+                grid_density = 300  # Adjust for more/less dense grid
+                x_grid, z_grid = np.meshgrid(
+                    np.linspace(x_min, x_max, grid_density),
+                    np.linspace(z_min, z_max, grid_density)
+                )
+                grid_points = np.vstack((x_grid.ravel(), z_grid.ravel())).T
 
-        # Step 4: Generate a dense grid of points inside the hull
-        # Define a grid bounding box
-        x_min, x_max = projected_points[:, 0].min(), projected_points[:, 0].max()
-        z_min, z_max = projected_points[:, 1].min(), projected_points[:, 1].max()
-        # Create a grid of points
-        grid_density = 300  # Adjust for more/less dense grid
-        x_grid, z_grid = np.meshgrid(
-            np.linspace(x_min, x_max, grid_density),
-            np.linspace(z_min, z_max, grid_density)
-        )
-        grid_points = np.vstack((x_grid.ravel(), z_grid.ravel())).T
+                # 4A: Delaunay + find_simplex
+                # Create a Delaunay triangulation of the hull vertices
+                tri = Delaunay(hull_vertices)
+                # Retain points inside the convex hull
+                inside_hull = tri.find_simplex(grid_points) >= 0
+                floor_points = grid_points[inside_hull]
 
-        # 4A: Delaunay + find_simplex
-        # Create a Delaunay triangulation of the hull vertices
-        tri = Delaunay(hull_vertices)
-        # Retain points inside the convex hull
-        inside_hull = tri.find_simplex(grid_points) >= 0
-        floor_points = grid_points[inside_hull]
+                # Step 5: Add the y coordinate and ensure proper xyz order
+                floor_points_3d = np.hstack((
+                    floor_points[:, [0]], 
+                    np.ones((floor_points.shape[0], 1)) * (-5),  # y = -5mm
+                    floor_points[:, [1]]
+                ))
 
-        # Step 5: Add the y coordinate and ensure proper xyz order
-        floor_points_3d = np.hstack((
-            floor_points[:, [0]], 
-            np.ones((floor_points.shape[0], 1)) * (-5),  # y = -5mm
-            floor_points[:, [1]]
-        ))
+                # Step 6: Assign normals for the floor points
+                floor_normals = np.tile([0, -1, 0], (floor_points_3d.shape[0], 1))  # Normals point to -y direction
 
-        # Step 6: Assign normals for the floor points
-        floor_normals = np.tile([0, -1, 0], (floor_points_3d.shape[0], 1))  # Normals point in -y
-
-        # Step 7: Combine the filtered points and normals with the floor points and normals
-        updated_points = np.vstack((filtered_points, floor_points_3d))
-        updated_normals = np.vstack((filtered_normals, floor_normals))
-
-        # # save the pcd to ply files
-        # pcd = o3d.geometry.PointCloud()
-        # pcd.points = o3d.utility.Vector3dVector(filtered_points.astype(np.float64))
-        # pcd.normals = o3d.utility.Vector3dVector(filtered_normals.astype(np.float64))
-        # pcd_path = mesh_path.replace('.obj', '_filtered.ply')
-        # o3d.io.write_point_cloud(pcd_path, pcd)
-        # pcd.points = o3d.utility.Vector3dVector(floor_points_3d.astype(np.float64))
-        # pcd.normals = o3d.utility.Vector3dVector(floor_normals.astype(np.float64))
-        # pcd_path = mesh_path.replace('.obj', '_floor.ply')
-        # o3d.io.write_point_cloud(pcd_path, pcd)
+                # Step 7: Combine the filtered points and normals with the floor points and normals
+                vtx_np = np.vstack((vtx_np, floor_points_3d))
+                normal_np = np.vstack((normal_np, floor_normals))
+            
+            # # save the pcd to ply files
+            # pcd = o3d.geometry.PointCloud()
+            # pcd.points = o3d.utility.Vector3dVector(vtx_np.astype(np.float64))
+            # pcd.normals = o3d.utility.Vector3dVector(normal_np.astype(np.float64))
+            # pcd_path = mesh_path.replace('.obj', '_filtered.ply')
+            # o3d.io.write_point_cloud(pcd_path, pcd)
+            # pcd.points = o3d.utility.Vector3dVector(floor_points_3d.astype(np.float64))
+            # pcd.normals = o3d.utility.Vector3dVector(floor_normals.astype(np.float64))
+            # pcd_path = mesh_path.replace('.obj', '_floor.ply')
+            # o3d.io.write_point_cloud(pcd_path, pcd)
 
         ms = pymeshlab.MeshSet()
-        pts = pymeshlab.Mesh(updated_points, [], updated_normals)
+        pts = pymeshlab.Mesh(vtx_np, [], normal_np)
         ms.add_mesh(pts)      
         ms.generate_surface_reconstruction_screened_poisson(depth=depth, threads=os.cpu_count() // 2, preclean=True, samplespernode=15)
         if n_faces: ms.meshing_decimation_quadric_edge_collapse(targetfacenum = n_faces)
@@ -360,7 +363,6 @@ def poisson_mesh(mesh_path, vtx, normal, color, depth, use_pymeshlab, hhi=False,
         ms.meshing_remove_connected_component_by_diameter(mincomponentdiag=p)
                 
         ms.save_current_mesh(mesh_path)
-
         remove_vertex_colors(mesh_path)
         
 
