@@ -9,7 +9,7 @@ from utils.general_utils import safe_state, poisson_mesh, str2bool
 from utils.image_utils import psnr, depth2rgb, normal2rgb, depth2normal, resample_points, mask_prune, grid_prune, depth2viewDir, img2video
 from argparse import ArgumentParser
 from torchvision.utils import save_image
-from arguments import ModelParams, PipelineParams, get_combined_args
+from arguments import ModelParams, PipelineParams
 from gaussian_renderer import GaussianModel
 import sys
 import json
@@ -125,10 +125,9 @@ if __name__ == "__main__":
     parser.add_argument("--out_img4eval", action="store_true")
     parser.add_argument("--n_faces", type=int, default=None)
     parser.add_argument("--hhi", type=str, default="False")
-    parser.add_argument("--add_floor_pc", type=str, default="True")
-
-    # args = get_combined_args(parser)
+    parser.add_argument("--add_floor_pc", type=str, default="False")
     args = parser.parse_args(sys.argv[1:])
+
     if args.config_path is not None:
         with open(args.config_path, 'r') as f:
             config = json5.load(f)

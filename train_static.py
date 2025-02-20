@@ -285,10 +285,11 @@ if __name__ == "__main__":
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--config_path", type=str, default = None)
     parser.add_argument("--output_mesh", type=str, default="False")
-    parser.add_argument("--hhi", type=str, default="True")
+    parser.add_argument("--hhi", type=str, default="False")
     parser.add_argument("--n_faces", type=int, default=None)
-    parser.add_argument("--add_floor_pc", type=str, default="True")
+    parser.add_argument("--add_floor_pc", type=str, default="False")
     args = parser.parse_args(sys.argv[1:])
+    
     if args.config_path is not None:
         with open(args.config_path, 'r') as f:
             config = json5.load(f)
