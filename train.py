@@ -470,7 +470,7 @@ def train_frames(lp, op, pp, args):
     output_path=args.output_path # global
     source_path=args.source_path # global
     sub_paths = os.listdir(source_path)
-    tb_global = prepare_global_logger(args.output_global_path, lp)
+    tb_global = prepare_global_logger(args.output_global_path, lp.extract(args))
     pattern = re.compile(r'frame_(\d+)')
     dict_frame_dirs = {}
     for frame_dir in os.listdir(source_path): 
@@ -502,8 +502,6 @@ if __name__ == "__main__":
     lp = ModelParams(parser)
     op = OptimizationParams(parser)
     pp = PipelineParams(parser)
-    parser.add_argument('--ip', type=str, default="127.0.0.1")
-    parser.add_argument('--port', type=int, default=6009)
     parser.add_argument('--frame_start', type=int, default=1)
     parser.add_argument('--frame_end', type=int, default=150)
     parser.add_argument('--debug_from', type=int, default=-1)
@@ -541,7 +539,7 @@ if __name__ == "__main__":
 
     # set other parameters:
     if args.output_global_path == '':
-        args.output_global_path = args.output_path.replace('output', 'output_global')
+        args.output_global_path = args.output_path.replace('output', 'output_global').replace('recon_mesh', 'recon_mesh_global')
     if len(args.test_iterations) == 0:
         # iterations are 1-based
         # args.test_iterations = [1, args.iter_s1//3, args.iter_s1//3*2, args.iter_s1, args.iter_s1 + args.iter_s2//3, args.iter_s1 + args.iter_s2//3*2, args.iter_s1 + args.iter_s2]
