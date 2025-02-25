@@ -117,15 +117,11 @@ if __name__ == "__main__":
     parser.add_argument("--skip_train", action="store_true")
     parser.add_argument("--skip_test", action="store_true")
     parser.add_argument("--quiet", action="store_true")
-    parser.add_argument("--img", action="store_true")
+    parser.add_argument("--img", action="store_true", help="write info, rendered and gt imgs of both training and testing sets.")
+    parser.add_argument("--out_img4eval", action="store_true", help="write rendered and gt imgs of testing set.")
     parser.add_argument("--poisson_depth", default=9, type=int)
     parser.add_argument("--config_path", type=str, default = None)
     parser.add_argument("--occ_thrsh", default=0., type=float)
-    parser.add_argument("--use_pymeshlab", type=bool, default=False)
-    parser.add_argument("--out_img4eval", action="store_true")
-    parser.add_argument("--n_faces", type=int, default=None)
-    parser.add_argument("--hhi", type=str, default="False")
-    parser.add_argument("--add_floor_pc", type=str, default="False")
     args = parser.parse_args(sys.argv[1:])
 
     if args.config_path is not None:

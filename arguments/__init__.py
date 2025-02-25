@@ -68,6 +68,7 @@ class ModelParams(ParamGroup):
         self.mono_normal = False
 
         self.unified_densification = True
+
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):
@@ -80,6 +81,13 @@ class PipelineParams(ParamGroup):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
+
+        self.output_mesh = False
+        self.use_pymeshlab = False
+        self.hhi = False
+        self.add_floor_pc = False
+        self.n_faces = None
+
         super().__init__(parser, "Pipeline Parameters")
 
 class OptimizationParams(ParamGroup):

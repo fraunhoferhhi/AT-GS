@@ -378,8 +378,7 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
             mesh_dir = os.path.join(args.output_path, "..", "meshes")
             os.makedirs(mesh_dir, exist_ok=True)
             mesh_path = os.path.join(mesh_dir, f"Frame_{args.frame_id:06d}.ply")
-            use_pymeshlab = True
-            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
+            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, args.use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
         
     return test_res, pre_time, frame_training_time
 
@@ -514,10 +513,6 @@ if __name__ == "__main__":
     parser.add_argument("--optical_flow_normals", type=str, default=True)
     parser.add_argument('--l_coh', type=float, default=1.0)
     parser.add_argument("--save_snapshot", action="store_true") 
-    parser.add_argument("--output_mesh", type=str, default="False")
-    parser.add_argument("--hhi", type=str, default="False")
-    parser.add_argument("--n_faces", type=int, default=None)
-    parser.add_argument("--add_floor_pc", type=str, default="False")
     args = parser.parse_args(sys.argv[1:])
 
     if args.config_path is not None:

@@ -204,8 +204,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             mesh_dir = os.path.join(args.output_path, "..", "meshes")
             os.makedirs(mesh_dir, exist_ok=True)
             mesh_path = os.path.join(mesh_dir, f"Frame_{args.frame_start:06d}.ply")
-            use_pymeshlab = True
-            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
+            poisson_mesh(mesh_path, resampled[:, :3], resampled[:, 3:6], resampled[:, 6:], poisson_depth, args.use_pymeshlab, args.hhi, args.n_faces, args.add_floor_pc)
 
 
 def prepare_output_and_logger(args):    
@@ -284,10 +283,6 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
     parser.add_argument("--config_path", type=str, default = None)
-    parser.add_argument("--output_mesh", type=str, default="False")
-    parser.add_argument("--hhi", type=str, default="False")
-    parser.add_argument("--n_faces", type=int, default=None)
-    parser.add_argument("--add_floor_pc", type=str, default="False")
     args = parser.parse_args(sys.argv[1:])
     
     if args.config_path is not None:
