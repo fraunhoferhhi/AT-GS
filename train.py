@@ -218,20 +218,18 @@ def training_one_frame(dataset, opt, pipe, load_iteration, testing_iterations, s
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration=iteration, save_type='all')
                                 
-            if iteration > opt.iter_s1: # s2
+            # s2
+            if iteration > opt.iter_s1 and iteration - opt.iter_s1 < opt.densify_until_iter:
                 # Densification: prune -> densify -> reset_opacity
-                if iteration - opt.iter_s1 < opt.densify_until_iter and iteration - opt.iter_s1 > opt.densify_from_iter:
-                    # Keep track of max radii in image-space for pruning
-                    gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
-                    gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
+                gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
-                    if (iteration - opt.iter_s1) % opt.densification_interval == 0:
-                        min_opac = 0.1
-                        gaussians.adaptive_prune(min_opac, scene.cameras_extent)
-                        gaussians.adaptive_densify(opt.densify_grad_threshold, scene.cameras_extent, True)
-                    
-                    if (iteration - opt.iter_s1 - 1) % opt.opacity_reset_interval == 0 and opt.opacity_lr > 0:
-                        gaussians.reset_opacity(0.12)
+                if iteration - opt.iter_s1 > opt.densify_from_iter and (iteration - opt.iter_s1) % opt.densification_interval == 0:
+                    min_opac = 0.1
+                    gaussians.adaptive_prune(min_opac, scene.cameras_extent)
+                    gaussians.adaptive_densify(opt.densify_grad_threshold, scene.cameras_extent, True)
+                
+                if (iteration - opt.iter_s1) % opt.opacity_reset_interval == 0 and opt.opacity_lr > 0:
+                    gaussians.reset_opacity(0.12)
 
             if (iteration - 1) % 200 == 0 and False:                
                 normal_wrt = normal2rgb(normal, mask_vis)

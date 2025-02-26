@@ -99,10 +99,6 @@ class Scene:
         else:
             raise NotImplementedError('Not Implemented!')
 
-    def dump_NTC(self):
-        NTC_path = os.path.join(self.output_path, "NTC.pth")
-        self.gaussians.ntc.dump(NTC_path)
-
     def getTrainCameras(self, scale=1.0):
         return self.train_cameras[scale]
 

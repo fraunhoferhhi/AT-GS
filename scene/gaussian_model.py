@@ -560,7 +560,6 @@ class GaussianModel:
         n_ori = len(self._xyz)
         prune_opac = (self.get_opacity < min_opacity).squeeze()
 
-        # scale_thrsh = torch.tensor([2e-4, 0.1]) * extent
         scale_min = self.get_scaling[:, :2].min(1).values
         scale_max = self.get_scaling[:, :2].max(1).values
         prune_scale = scale_max > 0.5 * extent

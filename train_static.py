@@ -141,17 +141,15 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
 
-            if iteration < opt.densify_until_iter and iteration > opt.densify_from_iter:
-                # Keep track of max radii in image-space for pruning
-                gaussians.max_radii2D[visibility_filter] = torch.max(gaussians.max_radii2D[visibility_filter], radii[visibility_filter])
+            if iteration < opt.densify_until_iter:
                 gaussians.add_densification_stats(viewspace_point_tensor, visibility_filter)
 
-                if iteration % opt.densification_interval == 0:
+                if iteration > opt.densify_from_iter and iteration % opt.densification_interval == 0:
                     min_opac = 0.1
                     gaussians.adaptive_prune(min_opac, scene.cameras_extent)
                     gaussians.adaptive_densify(opt.densify_grad_threshold, scene.cameras_extent)
                 
-                if (iteration - 1) % opt.opacity_reset_interval == 0 and opt.opacity_lr > 0:
+                if iteration % opt.opacity_reset_interval == 0 and opt.opacity_lr > 0:
                     gaussians.reset_opacity(0.12)
 
             if (iteration - 1) % 1000 == 0:                
