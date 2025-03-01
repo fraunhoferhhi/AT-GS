@@ -75,9 +75,11 @@ This project is built upon [gaussian_surfels](https://github.com/turandai/gaussi
 ## Citation
 If you find our code or paper helpful, please consider citing it:
 ```bibtex
-@article{chen2024adaptive,
-  title={Adaptive and Temporally Consistent Gaussian Surfels for Multi-view Dynamic Reconstruction},
-  author={Chen, Decai and Oberson, Brianne and Feldmann, Ingo and Schreer, Oliver and Hilsmann, Anna and Eisert, Peter},
-  journal={arXiv preprint arXiv:2411.06602},
-  year={2024}
+@InProceedings{Chen_2025_WACV,
+    author    = {Chen, Decai and Oberson, Brianne and Feldmann, Ingo and Schreer, Oliver and Hilsmann, Anna and Eisert, Peter},
+    title     = {Adaptive and Temporally Consistent Gaussian Surfels for Multi-View Dynamic Reconstruction},
+    booktitle = {Proceedings of the Winter Conference on Applications of Computer Vision (WACV)},
+    month     = {February},
+    year      = {2025},
+    pages     = {742-752}
 }
